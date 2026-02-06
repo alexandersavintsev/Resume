@@ -1,15 +1,15 @@
 from core.base import BaseEntity
+from core.predictions import Prediction
 from core.resumes import Resume
 
 
 class MatchingResult(BaseEntity):
-    def __init__(self, scores: dict[Resume, float]):
+    def __init__(self, predictions: list[Prediction]):
         super().__init__()
-        self._scores = scores
+        self._predictions = predictions
 
     def top_k(self, k: int) -> list[Resume]:
-        return sorted(
-            self._scores,
-            key=self._scores.get,
-            reverse=True
-        )[:k]
+        return [
+            p.resume
+            for p in sorted(self._predictions, key=lambda p: p.score, reverse=True)[:k]
+        ]

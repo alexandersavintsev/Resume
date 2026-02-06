@@ -56,8 +56,7 @@ class Transaction(BaseEntity):
             raise ValueError("Transaction does not belong to this user")
 
         if self._type == TransactionType.TOP_UP:
-            # В users.py можно оставить баланс как float/int — здесь просто концепт.
-            user._balance += self._amount.credits  # noqa: SLF001 (учебный скелет)
+            user.top_up(self._amount.credits)
         elif self._type == TransactionType.CHARGE:
             user.spend(self._amount.credits)
         else:

@@ -42,7 +42,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-ml_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ml_password}
     ports:
-      # порт наружу НЕ запрещён требованиями; можно убрать при желании
       - "5432:5432"
     volumes:
       # локальная директория -> /var/lib/postgresql/data для персистентности

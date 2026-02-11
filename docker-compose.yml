@@ -1,4 +1,5 @@
 services:
+
   app:
     build:
       context: ./app
@@ -26,12 +27,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    restart: on-failure
     ports:
       - "5672:5672"
       - "15672:15672"
-    restart: on-failure
     volumes:
-      - ./data/rabbitmq:/var/lib/rabbitmq
+      - rabbitmq_volume:/var/lib/rabbitmq
     networks:
       - backend
 
@@ -41,8 +42,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-ml_service}
       POSTGRES_USER: ${POSTGRES_USER:-ml_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ml_password}
+    ports:
+      - "5432:5432"
     volumes:
-      - ./data/postgres/pgdata:/var/lib/postgresql/data
+      - postgres_volume:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -50,4 +53,6 @@ networks:
   backend:
     driver: bridge
 
-
+volumes:
+  postgres_volume:
+  rabbitmq_volume:

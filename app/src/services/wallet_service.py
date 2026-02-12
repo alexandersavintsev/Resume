@@ -21,25 +21,28 @@ class TxResult:
     tx_id: uuid.UUID
     new_balance: int
 
+def _tx(session: Session):
+    # If caller already started a transaction (SQLAlchemy autobegin or explicit),
+    # use SAVEPOINT; otherwise open a new transaction.
+    return session.begin_nested() if session.in_transaction() else session.begin()
 
 def create_user(session: Session, *, email: str, role: str, initial_credits: int = 0) -> uuid.UUID:
     user = session.scalar(select(UserORM).where(UserORM.email == email))
     if user:
         return user.id
 
-    user = UserORM(email=email, role=role)
-    session.add(user)
-    session.flush()
-    session.add(BalanceORM(user_id=user.id, credits=initial_credits))
-    session.commit()
-    return user.id
-
+    with _tx(session):
+        user = UserORM(email=email, role=role)
+        session.add(user)
+        session.flush()
+        session.add(BalanceORM(user_id=user.id, credits=initial_credits))
+        return user.id
 
 def top_up(session: Session, *, user_id: uuid.UUID, amount: int, task_id: uuid.UUID | None = None) -> TxResult:
     if amount <= 0:
         raise ValueError("amount must be positive")
 
-    with session.begin():
+    with _tx(session):
         bal = session.get(BalanceORM, user_id)
         if not bal:
             raise NotFoundError("balance not found")
@@ -56,7 +59,7 @@ def charge(session: Session, *, user_id: uuid.UUID, amount: int, task_id: uuid.U
     if amount <= 0:
         raise ValueError("amount must be positive")
 
-    with session.begin():
+    with _tx(session):
         bal = session.get(BalanceORM, user_id)
         if not bal:
             raise NotFoundError("balance not found")

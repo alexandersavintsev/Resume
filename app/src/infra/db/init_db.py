@@ -1,8 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-
 from infra.db.database import engine, get_session, Base
-from infra.db.models import UserORM, BalanceORM, MLModelORM
+from infra.db.models import UserRoleEnum
 
 
 DEMO_USER_EMAIL = "demo_user@example.com"
@@ -25,7 +24,7 @@ def init_demo_data() -> None:
         # demo user
         user = session.scalar(select(UserORM).where(UserORM.email == DEMO_USER_EMAIL))
         if not user:
-            user = UserORM(email=DEMO_USER_EMAIL, role="employer")
+            user = UserORM(email=DEMO_USER_EMAIL, role=UserRoleEnum.EMPLOYER)
             session.add(user)
             session.flush()  # to get user.id
             session.add(BalanceORM(user_id=user.id, credits=100))
@@ -33,7 +32,7 @@ def init_demo_data() -> None:
         # demo admin
         admin = session.scalar(select(UserORM).where(UserORM.email == DEMO_ADMIN_EMAIL))
         if not admin:
-            admin = UserORM(email=DEMO_ADMIN_EMAIL, role="admin")
+            admin = UserORM(email=DEMO_ADMIN_EMAIL, role=UserRoleEnum.ADMIN)
             session.add(admin)
             session.flush()
             session.add(BalanceORM(user_id=admin.id, credits=0))

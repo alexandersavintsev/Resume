@@ -1,15 +1,28 @@
-from __future__ import annotations
-
+import enum
 import uuid
 from datetime import datetime
-
+from __future__ import annotations
 from sqlalchemy import (
     String, Integer, DateTime, ForeignKey, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from infra.db.database import Base
+
+class UserRoleEnum(str, enum.Enum):
+    EMPLOYER = "employer"
+    ADMIN = "admin"
+
+
+class TransactionTypeEnum(str, enum.Enum):
+    TOP_UP = "top_up"
+    CHARGE = "charge"
+
+
+class RequestStatusEnum(str, enum.Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    PARTIALLY_VALID = "partially_valid"
 
 
 class UserORM(Base):
@@ -17,7 +30,7 @@ class UserORM(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False, index=True)
-    role: Mapped[str] = mapped_column(String(32), nullable=False)
+    role: Mapped[UserRoleEnum] = mapped_column(SAEnum(UserRoleEnum, name="user_role"), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
 
@@ -42,7 +55,7 @@ class TransactionORM(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    tx_type: Mapped[str] = mapped_column(String(16), nullable=False)  # top_up / charge
+    tx_type: Mapped[TransactionTypeEnum] = mapped_column(SAEnum(TransactionTypeEnum, name="transaction_type"), nullable=False)
     amount_credits: Mapped[int] = mapped_column(Integer, nullable=False)
     task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
@@ -85,7 +98,7 @@ class PredictionHistoryORM(Base):
     task_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("matching_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
 
     charged_credits: Mapped[int] = mapped_column(Integer, nullable=False)
-    status: Mapped[str] = mapped_column(String(32), nullable=False)  # success / failed / partially_valid
+    status: Mapped[RequestStatusEnum] = mapped_column(SAEnum(RequestStatusEnum, name="request_status"), nullable=False)
     invalid_items: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), default=datetime.utcnow, nullable=False, index=True)

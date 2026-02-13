@@ -7,6 +7,13 @@ from sqlalchemy.orm import Session
 from infra.db.models import MatchingTaskORM, PredictionHistoryORM, RequestStatusEnum
 
 def _tx(session: Session):
+    tx = session.get_transaction()
+
+    # Если транзакция появилась из-за SQLAlchemy autobegin (например после SELECT),
+    # сбрасываем её, чтобы service-операция могла открыть свою транзакцию и закоммититься.
+    if tx is not None and getattr(tx, "origin", None) is not None and tx.origin.name == "AUTOBEGIN":
+        session.rollback()
+
     return session.begin_nested() if session.in_transaction() else session.begin()
     
 

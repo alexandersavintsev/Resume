@@ -4,8 +4,8 @@ import uuid
 from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from infra.db.models import UserORM, BalanceORM, TransactionORM, UserRoleEnum, TransactionTypeEnum
 
-from infra.db.models import UserORM, BalanceORM, TransactionORM
 
 
 class NotFoundError(Exception):
@@ -26,7 +26,7 @@ def _tx(session: Session):
     # use SAVEPOINT; otherwise open a new transaction.
     return session.begin_nested() if session.in_transaction() else session.begin()
 
-def create_user(session: Session, *, email: str, role: str, initial_credits: int = 0) -> uuid.UUID:
+def create_user(session: Session, *, email: str, role: UserRoleEnum, initial_credits: int = 0) -> uuid.UUID:
     user = session.scalar(select(UserORM).where(UserORM.email == email))
     if user:
         return user.id
@@ -48,7 +48,7 @@ def top_up(session: Session, *, user_id: uuid.UUID, amount: int, task_id: uuid.U
             raise NotFoundError("balance not found")
 
         bal.credits += amount
-        tx = TransactionORM(user_id=user_id, tx_type="top_up", amount_credits=amount, task_id=task_id)
+        tx = TransactionORM(user_id=user_id, tx_type=TransactionTypeEnum.TOP_UP, amount_credits=amount, task_id=task_id)
         session.add(tx)
         session.flush()
 
@@ -68,7 +68,7 @@ def charge(session: Session, *, user_id: uuid.UUID, amount: int, task_id: uuid.U
             raise InsufficientBalanceError("insufficient balance")
 
         bal.credits -= amount
-        tx = TransactionORM(user_id=user_id, tx_type="charge", amount_credits=amount, task_id=task_id)
+        tx = TransactionORM(user_id=user_id, tx_type=TransactionTypeEnum.CHARGE, amount_credits=amount, task_id=task_id)
         session.add(tx)
         session.flush()
 

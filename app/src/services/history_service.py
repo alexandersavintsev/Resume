@@ -4,14 +4,18 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from infra.db.models import RequestStatusEnum
+from infra.db.models import MatchingTaskORM, PredictionHistoryORM, RequestStatusEnum
 
+def _tx(session: Session):
+    return session.begin_nested() if session.in_transaction() else session.begin()
+    
 
 def create_task(session: Session, *, user_id: uuid.UUID, keywords: list[str]) -> uuid.UUID:
-    task = MatchingTaskORM(user_id=user_id, keywords=keywords, is_completed=0)
-    session.add(task)
-    session.commit()
-    return task.id
+    with _tx(session):
+        task = MatchingTaskORM(user_id=user_id, keywords=keywords, is_completed=0)
+        session.add(task)
+        session.flush()
+        return task.id
 
 
 def mark_task_completed(session: Session, *, task_id: uuid.UUID) -> None:
@@ -28,19 +32,20 @@ def add_history_item(
     user_id: uuid.UUID,
     task_id: uuid.UUID,
     charged_credits: int,
-    status: str,
+    status: RequestStatusEnum,
     invalid_items: list[str] | None = None,
 ) -> uuid.UUID:
-    item = PredictionHistoryORM(
-        user_id=user_id,
-        task_id=task_id,
-        charged_credits=charged_credits,
-        status: RequestStatusEnum,
-        invalid_items=invalid_items or [],
-    )
-    session.add(item)
-    session.commit()
-    return item.id
+    with _tx(session):
+        item = PredictionHistoryORM(
+            user_id=user_id,
+            task_id=task_id,
+            charged_credits=charged_credits,
+            status=status,
+            invalid_items=invalid_items or [],
+        )
+        session.add(item)
+        session.flush()
+        return item.id
 
 
 def list_history(session: Session, *, user_id: uuid.UUID) -> list[PredictionHistoryORM]:

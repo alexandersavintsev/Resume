@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from infra.db.database import engine, get_session, Base
 from infra.db.models import UserRoleEnum
+from infra.db.models import UserRoleEnum, UserORM, BalanceORM, MLModelORM
 
 
 DEMO_USER_EMAIL = "demo_user@example.com"

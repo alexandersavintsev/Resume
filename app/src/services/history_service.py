@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from infra.db.models import MatchingTaskORM, PredictionHistoryORM
+from infra.db.models import RequestStatusEnum
 
 
 def create_task(session: Session, *, user_id: uuid.UUID, keywords: list[str]) -> uuid.UUID:
@@ -35,7 +35,7 @@ def add_history_item(
         user_id=user_id,
         task_id=task_id,
         charged_credits=charged_credits,
-        status=status,
+        status: RequestStatusEnum,
         invalid_items=invalid_items or [],
     )
     session.add(item)

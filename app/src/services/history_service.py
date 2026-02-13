@@ -19,11 +19,11 @@ def create_task(session: Session, *, user_id: uuid.UUID, keywords: list[str]) ->
 
 
 def mark_task_completed(session: Session, *, task_id: uuid.UUID) -> None:
-    task = session.get(MatchingTaskORM, task_id)
-    if not task:
-        raise ValueError("task not found")
-    task.is_completed = 1
-    session.commit()
+    with _tx(session):
+        task = session.get(MatchingTaskORM, task_id)
+        if not task:
+            raise ValueError("task not found")
+        task.is_completed = 1
 
 
 def add_history_item(

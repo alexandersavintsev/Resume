@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import enum
 import uuid
 from datetime import datetime
-from __future__ import annotations
-from sqlalchemy import (
-    String, Integer, DateTime, ForeignKey, UniqueConstraint
-)
+
+from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from infra.db.database import Base
+
 
 class UserRoleEnum(str, enum.Enum):
     EMPLOYER = "employer"

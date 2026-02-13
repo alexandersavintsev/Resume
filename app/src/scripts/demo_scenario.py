@@ -1,6 +1,6 @@
 from infra.db.init_db import create_tables, init_demo_data
 from infra.db.database import get_session
-from infra.db.models import RequestStatusEnum
+from infra.db.models import BalanceORM, UserRoleEnum, RequestStatusEnum
 from sqlalchemy import select
 
 from services.wallet_service import create_user, top_up, charge, list_transactions
@@ -14,7 +14,7 @@ def main():
     session = get_session()
     try:
         # create user
-        user_id = create_user(session, email="test_user@example.com", role="employer", initial_credits=10)
+        user_id = create_user(session, email="test_user@example.com", role=UserRoleEnum.EMPLOYER, initial_credits=10)
         print("Created/loaded user:", user_id)
 
         # show balance

@@ -1,6 +1,6 @@
 from infra.db.init_db import create_tables, init_demo_data
 from infra.db.database import get_session
-from infra.db.models import UserORM, BalanceORM
+from infra.db.models import RequestStatusEnum
 from sqlalchemy import select
 
 from services.wallet_service import create_user, top_up, charge, list_transactions
@@ -39,7 +39,7 @@ def main():
             user_id=user_id,
             task_id=task_id,
             charged_credits=20,
-            status="success",
+            status=RequestStatusEnum.SUCCESS,
             invalid_items=[],
         )
         print("History item:", hist_id)
